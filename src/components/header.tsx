@@ -48,7 +48,7 @@ export default function Header() {
       }`}
     >
       <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
-        <Link href="#" className="flex items-center gap-2" prefetch={false}>
+        <Link href="#home" className="flex items-center gap-2" prefetch={false}>
           <BookOpenCheck className="h-8 w-8 text-primary" />
           <span className="text-xl font-bold text-primary">LGU Study Hub</span>
         </Link>
@@ -90,7 +90,7 @@ export default function Header() {
               </SheetHeader>
               <div className="grid gap-6 p-6">
                 <Link
-                  href="#"
+                  href="#home"
                   className="flex items-center gap-2"
                   prefetch={false}
                 >
