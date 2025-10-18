@@ -1,77 +1,133 @@
 /**
- * @file Firebase Security Rules for LGU Study Hub.
+ * @file Firestore Security Rules
+ * @description This ruleset enforces a role-based access control model with user-specific data segregation.
  *
- * @corePhilosophy This ruleset enforces a role-based access control model for administrators and an ownership model for assignments.
- *  Admins can manage their own profiles and create/modify assignments associated with their admin ID.
+ * Data Structure:
+ * - /admins/{adminId}: Stores administrator profiles, accessible only to authenticated admins.
+ * - /assignments/{assignmentId}: Stores assignment details. Accessible to any authenticated user.
+ * - /users/{userId}: Stores user profiles, accessible only to the user themselves.
  *
- * @dataStructure
- *  - /admins/{adminId}: Stores admin profiles. Only accessible to the authenticated admin.
- *  - /assignments/{assignmentId}: Stores assignment data with a denormalized adminId for simplified authorization.
- *
- * @keySecurityDecisions
- *  - Admin profiles are private and only accessible to the respective admin.
- *  - Assignments are secured based on the `adminId` field, ensuring only the creating admin can modify them.
- *  - Read access to assignments is public (allowing students to view them), while write access is restricted to admins.
- *
- * @denormalizationForAuthorization
- *  - The `assignments` collection includes the `adminId` field, denormalizing the relationship between assignments and admins. This avoids the need for costly `get()` calls to the `admins` collection to verify ownership when managing assignments.
- *
- * @structuralSegregation
- *  - Uses separate collections for admins and assignments to clearly segregate data and simplify access control.
+ * Key Security Decisions:
+ * - Admins can only manage their own admin profile.
+ * - Users can only manage their own user profile.
+ * - Anyone can list assignments.
+ * - Authorization Independence: The 'assignments' collection denormalizes the 'adminId' to know which admin uploaded the assignment and to authorize independently.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Manages admin profiles. Only the authenticated admin can read and write their own profile.
+     * @description Controls access to administrator profiles.
      * @path /admins/{adminId}
-     * @allow (get, update, delete) if the authenticated user's ID matches the adminId.
-     * @allow (create) if the authenticated user's ID matches the adminId.
-     * @deny (get, update, delete) if the authenticated user's ID does not match the adminId.
-     * @deny (create) if the authenticated user's ID does not match the adminId.
-     * @principle Enforces document ownership for admins.
+     * @allow (get) Authenticated admin can read their own profile.
+     * @allow (create) Authenticated admin can create their own profile if the adminId matches their UID.
+     * @allow (update) Authenticated admin can update their own profile if the adminId matches their UID and document exists.
+     * @allow (delete) Authenticated admin can delete their own profile if the adminId matches their UID and document exists.
+     * @deny (get) Authenticated admin cannot read another admin's profile.
+     * @deny (create) Unauthenticated user cannot create an admin profile.
+     * @deny (update) Unauthenticated user cannot update an admin profile.
+     * @deny (delete) Unauthenticated user cannot delete an admin profile.
+     * @principle Enforces document ownership and authentication for admin profiles.
      */
     match /admins/{adminId} {
+      // Helper function to check if the user is signed in
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      // Helper function to check if the user is the owner of the document
+      function isOwner(adminId) {
+        return request.auth.uid == adminId;
+      }
+
+      // Allow reads (get, list) by the owner
       allow get: if isSignedIn() && isOwner(adminId);
       allow list: if false;
-      allow create: if isSignedIn() && isOwner(adminId) && request.resource.data.id == request.auth.uid;
-      allow update: if isSignedIn() && isExistingOwner(adminId) && request.resource.data.id == resource.data.id;
-      allow delete: if isSignedIn() && isExistingOwner(adminId);
+
+      // Allow creation if the user is signed in and the adminId matches their UID
+      allow create: if isSignedIn() && isOwner(adminId);
+
+      // Allow updates if the user is the owner of the document and the document exists
+      allow update: if isSignedIn() && isOwner(adminId);
+
+      // Allow deletes if the user is the owner of the document and the document exists
+      allow delete: if isSignedIn() && isOwner(adminId);
     }
 
     /**
-     * @description Manages assignments. Allows public read access, but restricts write access to the admin who created the assignment.
+     * @description Controls access to assignments.
      * @path /assignments/{assignmentId}
-     * @allow (get, list) Anyone can read assignments.
-     * @allow (create) Only an authenticated admin can create an assignment, and the adminId in the assignment data must match their UID.
-     * @allow (update, delete) Only the admin who created the assignment can update or delete it.
-     * @deny (create) if the adminId in the assignment data does not match the authenticated user's UID.
-     * @deny (update, delete) if the authenticated user is not the admin who created the assignment.
-     * @principle Enforces owner-only writes for assignments.
+     * @allow (get) Anyone can read an assignment.
+     * @allow (list) Anyone can list assignments.
+     * @allow (create) Only authenticated users can create assignments.
+     * @allow (update) Only the admin who created the assignment can update it, and document exists.
+     * @allow (delete) Only the admin who created the assignment can delete it, and document exists.
+     * @deny (create) Unauthenticated users cannot create assignments.
+     * @deny (update) Users who are not the creator of the assignment cannot update it.
+     * @deny (delete) Users who are not the creator of the assignment cannot delete it.
+     * @principle Allows public read access, restricts write access to the assignment creator.
      */
     match /assignments/{assignmentId} {
+      // Helper function to check if the user is signed in
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      // Helper function to check if the user is the owner of the assignment
+      function isOwner(assignmentId) {
+        return get(/databases/$(database)/documents/assignments/$(assignmentId)).data.adminId == request.auth.uid;
+      }
+
+      // Allow reads (get, list) by anyone
       allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.adminId == request.auth.uid;
-      allow update: if isSignedIn() && isExistingOwner(resource.data.adminId);
-      allow delete: if isSignedIn() && isExistingOwner(resource.data.adminId);
+
+      // Allow creation if the user is signed in
+      allow create: if isSignedIn();
+
+      // Allow updates if the user is the owner of the document and the document exists
+      allow update: if isSignedIn() && isOwner(assignmentId);
+
+      // Allow deletes if the user is the owner of the document and the document exists
+      allow delete: if isSignedIn() && isOwner(assignmentId);
     }
 
-    // --- Helper Functions ---
+    /**
+     * @description Controls access to user profiles.
+     * @path /users/{userId}
+     * @allow (get) Authenticated user can read their own profile.
+     * @allow (create) Authenticated user can create their own profile if the userId matches their UID.
+     * @allow (update) Authenticated user can update their own profile if the userId matches their UID and document exists.
+     * @allow (delete) Authenticated user can delete their own profile if the userId matches their UID and document exists.
+     * @deny (get) Authenticated user cannot read another user's profile.
+     * @deny (create) Unauthenticated user cannot create a user profile.
+     * @deny (update) Unauthenticated user cannot update a user profile.
+     * @deny (delete) Unauthenticated user cannot delete a user profile.
+     * @principle Enforces document ownership and authentication for user profiles.
+     */
+    match /users/{userId} {
+      // Helper function to check if the user is signed in
+      function isSignedIn() {
+        return request.auth != null;
+      }
 
-    // Checks if the user is signed in.
-    function isSignedIn() {
-      return request.auth != null;
-    }
+      // Helper function to check if the user is the owner of the document
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
 
-    // Checks if the authenticated user is the owner of the resource.
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
+      // Allow reads (get, list) by the owner
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if false;
 
-    //Checks if the authenticated user is the owner of an existing resource.
-    function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
+      // Allow creation if the user is signed in and the userId matches their UID
+      allow create: if isSignedIn() && isOwner(userId);
+
+      // Allow updates if the user is the owner of the document and the document exists
+      allow update: if isSignedIn() && isOwner(userId);
+
+      // Allow deletes if the user is the owner of the document and the document exists
+      allow delete: if isSignedIn() && isOwner(userId);
     }
   }
 }

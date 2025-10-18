@@ -4,9 +4,9 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth, useFirebase } from "@/firebase";
+import { useAuth, useFirebase, setDocumentNonBlocking } from "@/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -61,15 +61,17 @@ export default function SignUpPage() {
       const newUser = userCredential.user;
 
       if (firestore) {
-        // Create a user profile document in Firestore
-        await setDoc(doc(firestore, "users", newUser.uid), {
+        const userProfileData = {
+          id: newUser.uid,
           email: newUser.email,
           fullName,
           rollNo,
           section,
           degree,
           semester,
-        });
+        };
+        // Create a user profile document in Firestore
+        setDocumentNonBlocking(doc(firestore, "users", newUser.uid), userProfileData, { merge: false });
       }
       
       router.push("/");

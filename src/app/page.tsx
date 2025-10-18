@@ -5,8 +5,8 @@ import Header from "@/components/header";
 import Hero from "@/components/hero";
 import Browse from "@/components/browse";
 import SemesterDialog from "@/components/semester-dialog";
-import { useUser, useFirebase } from "@/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useUser, useFirebase, setDocumentNonBlocking } from "@/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -21,19 +21,27 @@ export default function Home() {
       if (user && firestore) {
         // User is logged in, check their profile for a semester
         const userDocRef = doc(firestore, "users", user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists() && userDoc.data().semester) {
-          setSemester(userDoc.data().semester);
-        } else {
-          // No semester in profile, check local storage or open dialog
-          const savedSemester = localStorage.getItem(`userSemester_${user.uid}`);
-          if (savedSemester) {
-            setSemester(savedSemester);
-            // Optionally, save it to their Firestore profile
-            await setDoc(userDocRef, { semester: savedSemester }, { merge: true });
-          } else {
+        try {
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists() && userDoc.data().semester) {
+              setSemester(userDoc.data().semester);
+            } else {
+              // No semester in profile, check local storage or open dialog
+              const savedSemester = localStorage.getItem(`userSemester_${user.uid}`);
+              if (savedSemester) {
+                setSemester(savedSemester);
+                // Optionally, save it to their Firestore profile
+                setDocumentNonBlocking(userDocRef, { semester: savedSemester }, { merge: true });
+              } else {
+                setIsDialogOpen(true);
+              }
+            }
+        } catch (e) {
+            // This might be a permission error if rules are not set up
+            // for reads. For now, we'll assume it might fail and open
+            // the dialog as a fallback.
+            console.error("Could not fetch user profile", e);
             setIsDialogOpen(true);
-          }
         }
       } else {
         // User is not logged in, do not show dialog or content
@@ -49,7 +57,7 @@ export default function Home() {
      if (user && firestore) {
       // Logged-in user
       const userDocRef = doc(firestore, "users", user.uid);
-      await setDoc(userDocRef, { semester: selectedSemester }, { merge: true });
+      setDocumentNonBlocking(userDocRef, { semester: selectedSemester }, { merge: true });
       localStorage.setItem(`userSemester_${user.uid}`, selectedSemester);
     }
     // No longer saving for guest users
