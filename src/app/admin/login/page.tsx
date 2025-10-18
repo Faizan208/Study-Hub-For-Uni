@@ -9,17 +9,15 @@ import { collection, getDocs, limit, query } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/firebase";
 
 export default function AdminLogin() {
   const auth = useAuth();
   const { firestore } = useFirebase();
   const router = useRouter();
-  const { toast } = useToast();
   const { user, isUserLoading } = useUser();
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
+  const [email, setEmail] = React.useState("badalsenpai@gmail.com");
+  const [password, setPassword] = React.useState("#Faizan7676!");
   const [isSigningIn, setIsSigningIn] = React.useState(false);
   const [checkingAdmins, setCheckingAdmins] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);

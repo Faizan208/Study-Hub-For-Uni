@@ -5,7 +5,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useFirebase, useUser } from "@/firebase";
 import { collection, getDocs, limit, query } from "firebase/firestore";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, BookCopy, FlaskConical } from "lucide-react";
 import Link from "next/link";
 
@@ -97,11 +97,19 @@ export default function AdminDashboard() {
                 Overview of your academic resources.
             </p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <StatCard title="Total Assignments" value={counts.assignments} icon={FileText} href="/admin/dashboard/assignments" />
-            <StatCard title="Total Quizzes" value={counts.quizzes} icon={BookCopy} href="/admin/dashboard/quizzes" />
-            <StatCard title="Total Practicals" value={counts.practicals} icon={FlaskConical} href="/admin/dashboard/practicals" />
-        </div>
+        {isLoadingCounts ? (
+             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <Card><CardHeader><CardTitle>Loading...</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">-</div></CardContent></Card>
+                <Card><CardHeader><CardTitle>Loading...</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">-</div></CardContent></Card>
+                <Card><CardHeader><CardTitle>Loading...</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">-</div></CardContent></Card>
+             </div>
+        ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <StatCard title="Total Assignments" value={counts.assignments} icon={FileText} href="/admin/dashboard/assignments" />
+                <StatCard title="Total Quizzes" value={counts.quizzes} icon={BookCopy} href="/admin/dashboard/quizzes" />
+                <StatCard title="Total Practicals" value={counts.practicals} icon={FlaskConical} href="/admin/dashboard/practicals" />
+            </div>
+        )}
     </div>
   );
 }
