@@ -36,13 +36,9 @@ export default function Home() {
           }
         }
       } else {
-        // User is not logged in, use local storage
-        const savedSemester = localStorage.getItem("userSemester_guest");
-        if (savedSemester) {
-          setSemester(savedSemester);
-        } else {
-          setIsDialogOpen(true);
-        }
+        // User is not logged in, do not show dialog or content
+        setSemester(null);
+        setIsDialogOpen(false);
       }
     };
 
@@ -55,10 +51,8 @@ export default function Home() {
       const userDocRef = doc(firestore, "users", user.uid);
       await setDoc(userDocRef, { semester: selectedSemester }, { merge: true });
       localStorage.setItem(`userSemester_${user.uid}`, selectedSemester);
-    } else {
-      // Guest user
-      localStorage.setItem("userSemester_guest", selectedSemester);
     }
+    // No longer saving for guest users
     setSemester(selectedSemester);
     setIsDialogOpen(false);
   };
@@ -67,9 +61,9 @@ export default function Home() {
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        <SemesterDialog open={isDialogOpen} onSave={handleSemesterSave} />
+        {user && <SemesterDialog open={isDialogOpen} onSave={handleSemesterSave} />}
         <Hero />
-        {semester && <Browse semester={semester} />}
+        {user && semester && <Browse semester={semester} />}
       </main>
     </div>
   );
