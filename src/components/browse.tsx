@@ -5,16 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Filter, Search } from "lucide-react";
 import Image from "next/image";
-import { quizzes, assignments, practicals, practicalFilters } from "@/lib/placeholder-data";
+import { getQuizzes, getAssignments, getPracticals, practicalFilters } from "@/lib/placeholder-data";
 import { Input } from "@/components/ui/input";
 
-export default function Browse() {
+export default function Browse({ semester }: { semester: string }) {
   const [activeFilter, setActiveFilter] = React.useState("All");
+
+  const quizzes = getQuizzes(semester);
+  const assignments = getAssignments(semester);
+  const allPracticals = getPracticals(semester);
 
   const filteredPracticals =
     activeFilter === "All"
-      ? practicals
-      : practicals.filter((p) => p.category === activeFilter);
+      ? allPracticals
+      : allPracticals.filter((p) => p.category === activeFilter);
+
+  const latestUploads = [...quizzes, ...assignments];
 
   return (
     <section className="py-20 md:py-28">
@@ -22,40 +28,44 @@ export default function Browse() {
         {/* Latest Uploads */}
         <div className="mb-16">
           <h2 className="mb-10 text-center text-3xl font-bold md:text-4xl">
-            Latest Quizzes & Assignments
+            Latest Quizzes & Assignments for Semester {semester}
           </h2>
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {[...quizzes, ...assignments].map((item) => (
-              <Card key={item.id} className="overflow-hidden transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl">
-                <CardContent className="p-0">
-                  <Image
-                    data-ai-hint={`${item.type} resource`}
-                    src={item.image}
-                    alt={item.title}
-                    width={600}
-                    height={400}
-                    className="h-48 w-full object-cover"
-                  />
-                  <div className="p-6">
-                    <h3 className="mb-2 text-xl font-bold">{item.title}</h3>
-                    <p className="mb-4 text-sm text-muted-foreground">{item.description}</p>
-                    <div className="flex items-center justify-between">
-                      <p className="text-lg font-semibold text-primary">
-                        {item.price} Rs
-                      </p>
-                      <Button>Buy Now</Button>
+          {latestUploads.length > 0 ? (
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {latestUploads.map((item) => (
+                <Card key={item.id} className="overflow-hidden transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl">
+                  <CardContent className="p-0">
+                    <Image
+                      data-ai-hint={`${item.type} resource`}
+                      src={item.image}
+                      alt={item.title}
+                      width={600}
+                      height={400}
+                      className="h-48 w-full object-cover"
+                    />
+                    <div className="p-6">
+                      <h3 className="mb-2 text-xl font-bold">{item.title}</h3>
+                      <p className="mb-4 text-sm text-muted-foreground">{item.description}</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-lg font-semibold text-primary">
+                          {item.price} Rs
+                        </p>
+                        <Button>Buy Now</Button>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+             <p className="text-center text-muted-foreground">No quizzes or assignments found for this semester.</p>
+          )}
         </div>
 
         {/* Lab Practicals */}
         <div>
           <h2 className="mb-10 text-center text-3xl font-bold md:text-4xl">
-            Lab Practicals
+            Lab Practicals for Semester {semester}
           </h2>
           <div className="mb-8 flex flex-col items-center justify-center gap-4 md:flex-row">
               <div className="relative w-full max-w-sm">
@@ -76,32 +86,36 @@ export default function Browse() {
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredPracticals.map((item) => (
-              <Card key={item.id} className="overflow-hidden transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl">
-                <CardContent className="p-0">
-                   <Image
-                    data-ai-hint={`${item.category} practical`}
-                    src={item.image}
-                    alt={item.title}
-                    width={600}
-                    height={400}
-                    className="h-48 w-full object-cover"
-                  />
-                  <div className="p-6">
-                    <h3 className="mb-2 text-xl font-bold">{item.title}</h3>
-                    <p className="mb-4 text-sm text-muted-foreground">{item.description}</p>
-                    <div className="flex items-center justify-between">
-                      <p className="text-lg font-semibold text-primary">
-                        {item.price} Rs
-                      </p>
-                      <Button>Buy Now</Button>
+          {filteredPracticals.length > 0 ? (
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredPracticals.map((item) => (
+                <Card key={item.id} className="overflow-hidden transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl">
+                  <CardContent className="p-0">
+                    <Image
+                      data-ai-hint={`${item.category} practical`}
+                      src={item.image}
+                      alt={item.title}
+                      width={600}
+                      height={400}
+                      className="h-48 w-full object-cover"
+                    />
+                    <div className="p-6">
+                      <h3 className="mb-2 text-xl font-bold">{item.title}</h3>
+                      <p className="mb-4 text-sm text-muted-foreground">{item.description}</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-lg font-semibold text-primary">
+                          {item.price} Rs
+                        </p>
+                        <Button>Buy Now</Button>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground">No practicals found for this semester.</p>
+          )}
         </div>
       </div>
     </section>
