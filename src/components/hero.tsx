@@ -1,4 +1,4 @@
-import { ArrowRight, Book, GraduationCap, Lightbulb, PenSquare } from "lucide-react";
+import { ArrowRight, Book, BookOpenCheck, GraduationCap, Lightbulb, PenSquare } from "lucide-react";
 import { Button } from "./ui/button";
 import Link from "next/link";
 
