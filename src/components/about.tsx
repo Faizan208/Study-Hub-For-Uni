@@ -44,16 +44,16 @@ export default function About() {
                 I'm a passionate Computer Science student dedicated to creating helpful resources for my peers. This platform is built to make our academic journey a little bit easier.
               </p>
               <div className="flex justify-center gap-4">
-                <Button asChild variant="outline">
-                  <a href="mailto:badalsenpai@gmail.com">
+                <a href="mailto:badalsenpai@gmail.com">
+                  <Button variant="outline">
                     <Mail className="mr-2 h-4 w-4" /> Email Me
-                  </a>
-                </Button>
-                <Button asChild>
-                  <a href="https://www.instagram.com/corpy_boy?igsh=Z2pvcGJhNXU2YWl3" target="_blank" rel="noopener noreferrer">
+                  </Button>
+                </a>
+                <a href="https://www.instagram.com/corpy_boy?igsh=Z2pvcGJhNXU2YWl3" target="_blank" rel="noopener noreferrer">
+                  <Button>
                     <InstagramIcon className="mr-2 h-4 w-4" /> Instagram
-                  </a>
-                </Button>
+                  </Button>
+                </a>
               </div>
             </CardContent>
           </Card>
