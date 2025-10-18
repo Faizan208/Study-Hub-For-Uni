@@ -1,6 +1,5 @@
 import Header from "@/components/header";
 import Hero from "@/components/hero";
-import Stats from "@/components/stats";
 
 export default function Home() {
   return (
@@ -8,7 +7,6 @@ export default function Home() {
       <Header />
       <main className="flex-1">
         <Hero />
-        <Stats />
       </main>
     </div>
   );
