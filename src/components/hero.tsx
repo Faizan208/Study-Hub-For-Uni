@@ -1,6 +1,7 @@
 import { ArrowRight, Book, BookOpenCheck, GraduationCap, Lightbulb, PenSquare } from "lucide-react";
 import { Button } from "./ui/button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const FloatingIcon = ({ icon: Icon, className, animationClass } : {icon: React.ElementType, className: string, animationClass: string}) => (
   <div className={`absolute ${className} hidden md:block`}>
@@ -25,6 +26,8 @@ const FloatingBadge = ({ text, icon: Icon, className, animationClass } : {text: 
 );
 
 export default function Hero() {
+  const router = useRouter();
+
   return (
     <section className="relative w-full overflow-hidden py-24 md:py-32 lg:py-40">
       <div className="container mx-auto px-4 md:px-6">
@@ -39,21 +42,19 @@ export default function Hero() {
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button
-              asChild
               size="lg"
               className="w-full sm:w-auto transition-transform duration-300 hover:scale-105"
+              onClick={() => router.push('#')}
             >
-              <Link href="#">
                 Explore Resources <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
             </Button>
             <Button
-              asChild
               size="lg"
               variant="outline"
               className="w-full border-2 sm:w-auto transition-transform duration-300 hover:scale-105"
+              onClick={() => router.push('#')}
             >
-              <Link href="#">Learn More</Link>
+                Learn More
             </Button>
           </div>
         </div>
