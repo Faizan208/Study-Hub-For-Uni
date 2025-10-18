@@ -32,9 +32,9 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleSignOut = () => {
-    if (user) {
-      auth.signOut();
+  const handleSignOut = async () => {
+    if (user && auth) {
+      await auth.signOut();
       router.push('/');
     }
   };

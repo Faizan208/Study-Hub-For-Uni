@@ -33,7 +33,7 @@ export default function AdminDashboard() {
     }
   }, [user, isUserLoading, router]);
 
-  const handleUpload = async () => {
+  const handleUpload = () => {
     if (!firestore || !user) {
       toast({
         variant: "destructive",
@@ -82,6 +82,7 @@ export default function AdminDashboard() {
   };
   
   const handleSignOut = async () => {
+    if (!auth) return;
     await auth.signOut();
     router.push('/');
   };
