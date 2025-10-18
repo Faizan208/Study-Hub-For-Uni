@@ -10,6 +10,19 @@ import { Input } from "@/components/ui/input";
 import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { useInView } from "react-intersection-observer";
+import PaymentDialog from "./payment-dialog";
+import { useToast } from "@/hooks/use-toast";
+
+type PurchasableItem = {
+    id: string;
+    title: string;
+    description: string;
+    price: number;
+    image: string;
+    type?: string;
+    category?: string;
+    semester: string;
+};
 
 const AnimatedCard = ({ children, index }: { children: React.ReactNode, index: number }) => {
   const { ref, inView } = useInView({
@@ -32,8 +45,12 @@ const AnimatedCard = ({ children, index }: { children: React.ReactNode, index: n
 export default function Browse({ semester }: { semester: string }) {
   const [activeFilter, setActiveFilter] = React.useState("All");
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [selectedItem, setSelectedItem] = React.useState<PurchasableItem | null>(null);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = React.useState(false);
+
   const { user } = useUser();
   const router = useRouter();
+  const { toast } = useToast();
 
   const assignments = getAssignments(semester);
   const allPracticals = getPracticals(semester);
@@ -44,17 +61,26 @@ export default function Browse({ semester }: { semester: string }) {
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
-  const latestUploads = [...assignments];
-
-  const handleBuyNow = () => {
+  
+  const handleBuyNow = (item: PurchasableItem) => {
     if (!user) {
       router.push("/login");
     } else {
-      // Implement buy now logic here
-      console.log("Proceeding to purchase");
+      setSelectedItem(item);
+      setIsPaymentDialogOpen(true);
     }
   };
+
+  const handlePaymentConfirm = () => {
+    // In a real app, this would involve backend verification.
+    // For now, we just show a success message.
+    toast({
+        title: "Purchase Confirmed!",
+        description: `Your request for "${selectedItem?.title}" has been received. You'll get access once payment is verified.`,
+    });
+    setIsPaymentDialogOpen(false);
+    setSelectedItem(null);
+  }
 
   return (
     <section className="py-20 md:py-28">
@@ -64,9 +90,9 @@ export default function Browse({ semester }: { semester: string }) {
           <h2 className="mb-10 text-center text-3xl font-bold md:text-4xl">
             Assignments for Semester {semester}
           </h2>
-          {latestUploads.length > 0 ? (
+          {assignments.length > 0 ? (
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {latestUploads.map((item, index) => (
+              {assignments.map((item, index) => (
                 <AnimatedCard key={item.id} index={index}>
                   <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-xl flex flex-col h-full">
                     <CardContent className="p-0 flex flex-col flex-grow">
@@ -86,7 +112,7 @@ export default function Browse({ semester }: { semester: string }) {
                           <p className="text-lg font-semibold text-primary">
                             {item.price} Rs
                           </p>
-                          <Button onClick={handleBuyNow}>Buy Now</Button>
+                          <Button onClick={() => handleBuyNow(item)}>Buy Now</Button>
                         </div>
                       </div>
                     </CardContent>
@@ -150,7 +176,7 @@ export default function Browse({ semester }: { semester: string }) {
                             <p className="text-lg font-semibold text-primary">
                               {item.price} Rs
                             </p>
-                            <Button onClick={handleBuyNow}>Buy Now</Button>
+                            <Button onClick={() => handleBuyNow(item)}>Buy Now</Button>
                           </div>
                         </div>
                       </CardContent>
@@ -162,6 +188,15 @@ export default function Browse({ semester }: { semester: string }) {
             <p className="text-center text-muted-foreground">No practicals found for this filter.</p>
           )}
         </div>
+
+        {selectedItem && (
+            <PaymentDialog 
+                open={isPaymentDialogOpen}
+                onOpenChange={setIsPaymentDialogOpen}
+                item={selectedItem}
+                onConfirm={handlePaymentConfirm}
+            />
+        )}
       </div>
     </section>
   );
