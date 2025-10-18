@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -6,6 +7,9 @@ import { useAuth, useFirebase } from "@/firebase";
 import {
   collection,
   serverTimestamp,
+  getDocs,
+  limit,
+  query,
 } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,12 +29,28 @@ export default function AdminDashboard() {
   const [title, setTitle] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [isUploading, setIsUploading] = React.useState(false);
+  const [checkingAdmins, setCheckingAdmins] = React.useState(true);
 
   React.useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push("/admin/login");
+    if (isUserLoading || !firestore) return;
+
+    if (!user) {
+      // Not logged in, check if any admin exists to decide where to redirect.
+      const checkAdmins = async () => {
+        const adminsQuery = query(collection(firestore, "admins"), limit(1));
+        const adminSnapshot = await getDocs(adminsQuery);
+        if (adminSnapshot.empty) {
+          router.push("/admin/setup");
+        } else {
+          router.push("/admin/login");
+        }
+      };
+      checkAdmins();
+    } else {
+        // User is logged in, no need to check for other admins.
+        setCheckingAdmins(false);
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, firestore, router]);
 
   const handleUpload = () => {
     if (!firestore || !user) {
@@ -86,8 +106,7 @@ export default function AdminDashboard() {
     router.push('/');
   };
 
-
-  if (isUserLoading || !user) {
+  if (isUserLoading || checkingAdmins || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p>Loading...</p>

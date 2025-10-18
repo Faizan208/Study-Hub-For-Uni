@@ -1,9 +1,11 @@
+
 "use client";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/firebase";
+import { useAuth, useFirebase } from "@/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { collection, getDocs, limit, query } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,18 +14,35 @@ import { useUser } from "@/firebase";
 
 export default function AdminLogin() {
   const auth = useAuth();
+  const { firestore } = useFirebase();
   const router = useRouter();
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [isSigningIn, setIsSigningIn] = React.useState(false);
+  const [checkingAdmins, setCheckingAdmins] = React.useState(true);
 
   React.useEffect(() => {
-    if (!isUserLoading && user) {
+    if (isUserLoading || !firestore) return;
+
+    if (user) {
       router.push("/admin/dashboard");
+      return;
     }
-  }, [user, isUserLoading, router]);
+
+    const checkAdmins = async () => {
+      const adminsQuery = query(collection(firestore, "admins"), limit(1));
+      const adminSnapshot = await getDocs(adminsQuery);
+      if (adminSnapshot.empty) {
+        router.push("/admin/setup");
+      } else {
+        setCheckingAdmins(false);
+      }
+    };
+    checkAdmins();
+  }, [user, isUserLoading, firestore, router]);
+
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -38,18 +57,22 @@ export default function AdminLogin() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/admin/dashboard");
-    } catch (error) {
+    } catch (error: any) {
+      let description = "An unknown error occurred. Please try again.";
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+          description = "Invalid email or password. Please try again.";
+      }
       toast({
         variant: "destructive",
         title: "Sign-in Failed",
-        description: "Invalid email or password. Please try again.",
+        description: description,
       });
     } finally {
       setIsSigningIn(false);
     }
   };
 
-  if(isUserLoading || user) {
+  if(isUserLoading || user || checkingAdmins) {
     return <div className="flex min-h-screen items-center justify-center">Loading...</div>
   }
 
