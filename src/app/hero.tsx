@@ -31,7 +31,7 @@ export default function Hero() {
         <div className="relative z-10 mx-auto max-w-3xl text-center">
           <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
             <span className="block text-primary">Learn Smart,</span>
-            <span className="block text-foreground/80">Work Fast</span>
+            <span className="block text-foreground/90">Work Fast</span>
           </h1>
           <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground md:text-xl">
             Your central hub for academic resources at LGU. Access past papers,
