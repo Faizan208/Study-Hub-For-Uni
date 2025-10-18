@@ -1,0 +1,114 @@
+{
+  "entities": {
+    "Admin": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Admin",
+      "type": "object",
+      "description": "Represents an administrator user with elevated privileges to manage resources and assignments.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Admin entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The full name of the administrator."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the administrator.",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the administrator (e.g., 'superadmin', 'editor')."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "role"
+      ]
+    },
+    "Assignment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Assignment",
+      "type": "object",
+      "description": "Represents an assignment that can be uploaded and managed by administrators.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Assignment entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the assignment."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the assignment."
+        },
+        "uploadDate": {
+          "type": "string",
+          "description": "The date and time when the assignment was uploaded.",
+          "format": "date-time"
+        },
+        "adminId": {
+          "type": "string",
+          "description": "Reference to the Admin who uploaded the assignment. (Relationship: Admin 1:N Assignment)"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "uploadDate",
+        "adminId"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/admins/{adminId}",
+        "definition": {
+          "entityName": "Admin",
+          "schema": {
+            "$ref": "#/backend/entities/Admin"
+          },
+          "description": "Stores administrator profiles. Accessible only to authenticated admins.",
+          "params": [
+            {
+              "name": "adminId",
+              "description": "The unique identifier for the administrator."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/assignments/{assignmentId}",
+        "definition": {
+          "entityName": "Assignment",
+          "schema": {
+            "$ref": "#/backend/entities/Assignment"
+          },
+          "description": "Stores assignment details. Includes denormalized 'adminId' for authorization independence, to know which admin uploaded the assignment.",
+          "params": [
+            {
+              "name": "assignmentId",
+              "description": "The unique identifier for the assignment."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This Firestore data structure is designed to accommodate a separate login system for administrators who can upload and manage assignments within the 'LGU Study Hub' application. It prioritizes authorization independence and supports secure listing operations. The structure includes collections for admins and assignments, ensuring clear separation of concerns and simplified security rules.\n\nAuthorization Independence is achieved by denormalizing the `adminId` into the `assignments` collection. This eliminates the need for `get()` calls in security rules to verify the admin's role when creating or modifying assignments.\n\nThis structure supports secure listing (QAPs) by ensuring that only authenticated admins can access the `/admins/{adminId}` collection and that only authorized users (potentially all users) can list assignments from `/assignments`. Security rules can easily enforce these constraints without relying on complex filtering logic."
+  }
+}

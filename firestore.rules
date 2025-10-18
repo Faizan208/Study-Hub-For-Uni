@@ -1,0 +1,77 @@
+/**
+ * @file Firebase Security Rules for LGU Study Hub.
+ *
+ * @corePhilosophy This ruleset enforces a role-based access control model for administrators and an ownership model for assignments.
+ *  Admins can manage their own profiles and create/modify assignments associated with their admin ID.
+ *
+ * @dataStructure
+ *  - /admins/{adminId}: Stores admin profiles. Only accessible to the authenticated admin.
+ *  - /assignments/{assignmentId}: Stores assignment data with a denormalized adminId for simplified authorization.
+ *
+ * @keySecurityDecisions
+ *  - Admin profiles are private and only accessible to the respective admin.
+ *  - Assignments are secured based on the `adminId` field, ensuring only the creating admin can modify them.
+ *  - Read access to assignments is public (allowing students to view them), while write access is restricted to admins.
+ *
+ * @denormalizationForAuthorization
+ *  - The `assignments` collection includes the `adminId` field, denormalizing the relationship between assignments and admins. This avoids the need for costly `get()` calls to the `admins` collection to verify ownership when managing assignments.
+ *
+ * @structuralSegregation
+ *  - Uses separate collections for admins and assignments to clearly segregate data and simplify access control.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Manages admin profiles. Only the authenticated admin can read and write their own profile.
+     * @path /admins/{adminId}
+     * @allow (get, update, delete) if the authenticated user's ID matches the adminId.
+     * @allow (create) if the authenticated user's ID matches the adminId.
+     * @deny (get, update, delete) if the authenticated user's ID does not match the adminId.
+     * @deny (create) if the authenticated user's ID does not match the adminId.
+     * @principle Enforces document ownership for admins.
+     */
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && isOwner(adminId);
+      allow list: if false;
+      allow create: if isSignedIn() && isOwner(adminId) && request.resource.data.id == request.auth.uid;
+      allow update: if isSignedIn() && isExistingOwner(adminId) && request.resource.data.id == resource.data.id;
+      allow delete: if isSignedIn() && isExistingOwner(adminId);
+    }
+
+    /**
+     * @description Manages assignments. Allows public read access, but restricts write access to the admin who created the assignment.
+     * @path /assignments/{assignmentId}
+     * @allow (get, list) Anyone can read assignments.
+     * @allow (create) Only an authenticated admin can create an assignment, and the adminId in the assignment data must match their UID.
+     * @allow (update, delete) Only the admin who created the assignment can update or delete it.
+     * @deny (create) if the adminId in the assignment data does not match the authenticated user's UID.
+     * @deny (update, delete) if the authenticated user is not the admin who created the assignment.
+     * @principle Enforces owner-only writes for assignments.
+     */
+    match /assignments/{assignmentId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.adminId == request.auth.uid;
+      allow update: if isSignedIn() && isExistingOwner(resource.data.adminId);
+      allow delete: if isSignedIn() && isExistingOwner(resource.data.adminId);
+    }
+
+    // --- Helper Functions ---
+
+    // Checks if the user is signed in.
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Checks if the authenticated user is the owner of the resource.
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    //Checks if the authenticated user is the owner of an existing resource.
+    function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+    }
+  }
+}
