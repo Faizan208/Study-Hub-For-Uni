@@ -85,11 +85,32 @@
         "semester": {
           "type": "string",
           "description": "The user's selected semester."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "rollNo": {
+          "type": "string",
+          "description": "The user's university roll number."
+        },
+        "section": {
+          "type": "string",
+          "description": "The user's section."
+        },
+        "degree": {
+          "type": "string",
+          "description": "The user's degree program (e.g., BSCS)."
         }
       },
       "required": [
         "id",
-        "email"
+        "email",
+        "fullName",
+        "rollNo",
+        "section",
+        "degree",
+        "semester"
       ]
     }
   },
