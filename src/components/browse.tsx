@@ -106,18 +106,12 @@ export default function Browse({ semester }: { semester: string }) {
     return query(collection(firestore, "assignments"), where("semester", "==", semester));
   }, [firestore, semester]);
   
-  const quizzesQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, "quizzes"), where("semester", "==", semester));
-  }, [firestore, semester]);
-
   const practicalsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, "practicals"), where("semester", "==", semester));
   }, [firestore, semester]);
 
   const { data: assignments, isLoading: isLoadingAssignments } = useCollection<PurchasableItem>(assignmentsQuery);
-  const { data: quizzes, isLoading: isLoadingQuizzes } = useCollection<PurchasableItem>(quizzesQuery);
   const { data: practicals, isLoading: isLoadingPracticals } = useCollection<PurchasableItem>(practicalsQuery);
 
   const filteredPracticals = (practicals || [])
@@ -169,8 +163,7 @@ export default function Browse({ semester }: { semester: string }) {
       <div className="container mx-auto px-4 md:px-6">
         
         {renderResourceSection("Assignments", assignments, isLoadingAssignments)}
-        {renderResourceSection("Quizzes", quizzes, isLoadingQuizzes)}
-
+        
         {/* Lab Practicals */}
         <div>
           <h2 className="mb-10 text-center text-3xl font-bold md:text-4xl">
