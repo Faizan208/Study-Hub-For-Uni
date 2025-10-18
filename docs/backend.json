@@ -66,6 +66,31 @@
         "uploadDate",
         "adminId"
       ]
+    },
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User Profile",
+      "type": "object",
+      "description": "Represents a regular user's profile.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity (matches Firebase Auth UID)."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        },
+        "semester": {
+          "type": "string",
+          "description": "The user's selected semester."
+        }
+      },
+      "required": [
+        "id",
+        "email"
+      ]
     }
   },
   "auth": {
@@ -103,6 +128,22 @@
             {
               "name": "assignmentId",
               "description": "The unique identifier for the assignment."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores public profiles for regular users.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
             }
           ]
         }

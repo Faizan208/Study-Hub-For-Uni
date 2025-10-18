@@ -7,9 +7,13 @@ import { Filter, Search } from "lucide-react";
 import Image from "next/image";
 import { getQuizzes, getAssignments, getPracticals, practicalFilters } from "@/lib/placeholder-data";
 import { Input } from "@/components/ui/input";
+import { useUser } from "@/firebase";
+import { useRouter } from "next/navigation";
 
 export default function Browse({ semester }: { semester: string }) {
   const [activeFilter, setActiveFilter] = React.useState("All");
+  const { user } = useUser();
+  const router = useRouter();
 
   const quizzes = getQuizzes(semester);
   const assignments = getAssignments(semester);
@@ -21,6 +25,15 @@ export default function Browse({ semester }: { semester: string }) {
       : allPracticals.filter((p) => p.category === activeFilter);
 
   const latestUploads = [...quizzes, ...assignments];
+
+  const handleBuyNow = () => {
+    if (!user) {
+      router.push("/login");
+    } else {
+      // Implement buy now logic here
+      console.log("Proceeding to purchase");
+    }
+  };
 
   return (
     <section className="py-20 md:py-28">
@@ -50,7 +63,7 @@ export default function Browse({ semester }: { semester: string }) {
                         <p className="text-lg font-semibold text-primary">
                           {item.price} Rs
                         </p>
-                        <Button>Buy Now</Button>
+                        <Button onClick={handleBuyNow}>Buy Now</Button>
                       </div>
                     </div>
                   </CardContent>
@@ -106,7 +119,7 @@ export default function Browse({ semester }: { semester: string }) {
                         <p className="text-lg font-semibold text-primary">
                           {item.price} Rs
                         </p>
-                        <Button>Buy Now</Button>
+                        <Button onClick={handleBuyNow}>Buy Now</Button>
                       </div>
                     </div>
                   </CardContent>

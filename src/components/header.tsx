@@ -68,7 +68,16 @@ export default function Header() {
         </nav>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          
+          {!isUserLoading &&
+            (user ? (
+              <Button onClick={handleSignOut} variant="outline">
+                Sign Out
+              </Button>
+            ) : (
+              <Button asChild>
+                <Link href="/login">Sign In</Link>
+              </Button>
+            ))}
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
