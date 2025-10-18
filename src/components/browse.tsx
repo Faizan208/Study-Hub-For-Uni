@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -5,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Filter, Search } from "lucide-react";
 import Image from "next/image";
-import { getAssignments, getPracticals, practicalFilters } from "@/lib/placeholder-data";
+import { practicalFilters } from "@/lib/placeholder-data";
 import { Input } from "@/components/ui/input";
-import { useUser } from "@/firebase";
+import { useUser, useFirebase, useCollection, useMemoFirebase } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { useInView } from "react-intersection-observer";
 import PaymentDialog from "./payment-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { collection, query, where } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type PurchasableItem = {
     id: string;
@@ -41,8 +44,54 @@ const AnimatedCard = ({ children, index }: { children: React.ReactNode, index: n
   );
 };
 
+const ResourceCard = ({ item, onBuyNow, index }: { item: PurchasableItem, onBuyNow: (item: PurchasableItem) => void, index: number }) => (
+    <AnimatedCard index={index}>
+        <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-xl flex flex-col h-full">
+            <CardContent className="p-0 flex flex-col flex-grow">
+                <div className="relative w-full h-48">
+                <Image
+                    data-ai-hint={`${item.type || item.category} resource`}
+                    src={item.image}
+                    alt={item.title}
+                    layout="fill"
+                    objectFit="cover"
+                />
+                </div>
+                <div className="p-6 flex flex-col flex-grow">
+                <h3 className="mb-2 text-xl font-bold">{item.title}</h3>
+                <p className="mb-4 text-sm text-muted-foreground flex-grow">{item.description}</p>
+                <div className="flex items-center justify-between mt-auto">
+                    <p className="text-lg font-semibold text-primary">
+                    {item.price} Rs
+                    </p>
+                    <Button onClick={() => onBuyNow(item)}>Buy Now</Button>
+                </div>
+                </div>
+            </CardContent>
+        </Card>
+    </AnimatedCard>
+);
+
+const LoadingSkeleton = () => (
+    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {Array.from({length: 4}).map((_, i) => (
+            <div key={i} className="space-y-4">
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-1/2" />
+                <div className="flex justify-between items-center">
+                    <Skeleton className="h-8 w-1/4" />
+                    <Skeleton className="h-10 w-1/3" />
+                </div>
+            </div>
+        ))}
+    </div>
+);
+
 
 export default function Browse({ semester }: { semester: string }) {
+  const { firestore } = useFirebase();
   const [activeFilter, setActiveFilter] = React.useState("All");
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedItem, setSelectedItem] = React.useState<PurchasableItem | null>(null);
@@ -52,10 +101,26 @@ export default function Browse({ semester }: { semester: string }) {
   const router = useRouter();
   const { toast } = useToast();
 
-  const assignments = getAssignments(semester);
-  const allPracticals = getPracticals(semester);
+  const assignmentsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, "assignments"), where("semester", "==", semester));
+  }, [firestore, semester]);
+  
+  const quizzesQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, "quizzes"), where("semester", "==", semester));
+  }, [firestore, semester]);
 
-  const filteredPracticals = allPracticals
+  const practicalsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, "practicals"), where("semester", "==", semester));
+  }, [firestore, semester]);
+
+  const { data: assignments, isLoading: isLoadingAssignments } = useCollection<PurchasableItem>(assignmentsQuery);
+  const { data: quizzes, isLoading: isLoadingQuizzes } = useCollection<PurchasableItem>(quizzesQuery);
+  const { data: practicals, isLoading: isLoadingPracticals } = useCollection<PurchasableItem>(practicalsQuery);
+
+  const filteredPracticals = (practicals || [])
     .filter((p) => activeFilter === "All" || p.category === activeFilter)
     .filter((p) => 
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -72,8 +137,6 @@ export default function Browse({ semester }: { semester: string }) {
   };
 
   const handlePaymentConfirm = () => {
-    // In a real app, this would involve backend verification.
-    // For now, we just show a success message.
     toast({
         title: "Purchase Confirmed!",
         description: `Your request for "${selectedItem?.title}" has been received. You'll get access once payment is verified.`,
@@ -82,48 +145,31 @@ export default function Browse({ semester }: { semester: string }) {
     setSelectedItem(null);
   }
 
+  const renderResourceSection = (title: string, data: PurchasableItem[] | null, isLoading: boolean) => (
+     <div className="mb-16">
+        <h2 className="mb-10 text-center text-3xl font-bold md:text-4xl">
+            {title} for Semester {semester}
+        </h2>
+        {isLoading ? (
+            <LoadingSkeleton />
+        ) : data && data.length > 0 ? (
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {data.map((item, index) => (
+                <ResourceCard key={item.id} item={item} onBuyNow={handleBuyNow} index={index} />
+            ))}
+            </div>
+        ) : (
+            <p className="text-center text-muted-foreground">No {title.toLowerCase()} found for this semester.</p>
+        )}
+    </div>
+  )
+
   return (
     <section className="py-20 md:py-28">
       <div className="container mx-auto px-4 md:px-6">
-        {/* Assignments */}
-        <div className="mb-16">
-          <h2 className="mb-10 text-center text-3xl font-bold md:text-4xl">
-            Assignments for Semester {semester}
-          </h2>
-          {assignments.length > 0 ? (
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {assignments.map((item, index) => (
-                <AnimatedCard key={item.id} index={index}>
-                  <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-xl flex flex-col h-full">
-                    <CardContent className="p-0 flex flex-col flex-grow">
-                      <div className="relative w-full h-48">
-                        <Image
-                          data-ai-hint={`${item.type} resource`}
-                          src={item.image}
-                          alt={item.title}
-                          layout="fill"
-                          objectFit="cover"
-                        />
-                      </div>
-                      <div className="p-6 flex flex-col flex-grow">
-                        <h3 className="mb-2 text-xl font-bold">{item.title}</h3>
-                        <p className="mb-4 text-sm text-muted-foreground flex-grow">{item.description}</p>
-                        <div className="flex items-center justify-between mt-auto">
-                          <p className="text-lg font-semibold text-primary">
-                            {item.price} Rs
-                          </p>
-                          <Button onClick={() => handleBuyNow(item)}>Buy Now</Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </AnimatedCard>
-              ))}
-            </div>
-          ) : (
-             <p className="text-center text-muted-foreground">No assignments found for this semester.</p>
-          )}
-        </div>
+        
+        {renderResourceSection("Assignments", assignments, isLoadingAssignments)}
+        {renderResourceSection("Quizzes", quizzes, isLoadingQuizzes)}
 
         {/* Lab Practicals */}
         <div>
@@ -154,34 +200,10 @@ export default function Browse({ semester }: { semester: string }) {
               ))}
             </div>
           </div>
-          {filteredPracticals.length > 0 ? (
+          {isLoadingPracticals ? <LoadingSkeleton /> : filteredPracticals.length > 0 ? (
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredPracticals.map((item, index) => (
-                 <AnimatedCard key={item.id} index={index}>
-                    <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-xl flex flex-col h-full">
-                      <CardContent className="p-0 flex flex-col flex-grow">
-                        <div className="relative w-full h-48">
-                          <Image
-                            data-ai-hint={`${item.category} practical`}
-                            src={item.image}
-                            alt={item.title}
-                            layout="fill"
-                            objectFit="cover"
-                          />
-                        </div>
-                        <div className="p-6 flex flex-col flex-grow">
-                          <h3 className="mb-2 text-xl font-bold">{item.title}</h3>
-                          <p className="mb-4 text-sm text-muted-foreground flex-grow">{item.description}</p>
-                          <div className="flex items-center justify-between mt-auto">
-                            <p className="text-lg font-semibold text-primary">
-                              {item.price} Rs
-                            </p>
-                            <Button onClick={() => handleBuyNow(item)}>Buy Now</Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                 </AnimatedCard>
+                 <ResourceCard key={item.id} item={item} onBuyNow={handleBuyNow} index={index} />
               ))}
             </div>
           ) : (

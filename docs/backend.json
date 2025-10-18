@@ -47,6 +47,22 @@
           "type": "string",
           "description": "A detailed description of the assignment."
         },
+        "price": {
+            "type": "number",
+            "description": "The price of the item."
+        },
+        "image": {
+            "type": "string",
+            "description": "The image URL for the item."
+        },
+        "type": {
+            "type": "string",
+            "description": "The type of the item (e.g., assignment)."
+        },
+        "semester": {
+            "type": "string",
+            "description": "The semester this item belongs to."
+        },
         "uploadDate": {
           "type": "string",
           "description": "The date and time when the assignment was uploaded.",
@@ -58,12 +74,42 @@
         }
       },
       "required": [
-        "id",
         "title",
         "description",
-        "uploadDate",
+        "price",
+        "image",
+        "type",
+        "semester",
         "adminId"
       ]
+    },
+    "Quiz": {
+        "title": "Quiz",
+        "type": "object",
+        "description": "Represents a quiz.",
+        "properties": {
+            "title": { "type": "string" },
+            "description": { "type": "string" },
+            "price": { "type": "number" },
+            "image": { "type": "string" },
+            "type": { "type": "string", "enum": ["quiz"] },
+            "semester": { "type": "string" }
+        },
+        "required": ["title", "description", "price", "image", "type", "semester"]
+    },
+    "Practical": {
+        "title": "Practical",
+        "type": "object",
+        "description": "Represents a lab practical.",
+        "properties": {
+            "title": { "type": "string" },
+            "description": { "type": "string" },
+            "price": { "type": "number" },
+            "image": { "type": "string" },
+            "category": { "type": "string" },
+            "semester": { "type": "string" }
+        },
+        "required": ["title", "description", "price", "image", "category", "semester"]
     },
     "UserProfile": {
       "title": "User Profile",
@@ -127,7 +173,19 @@
       "schema": {
         "$ref": "#/entities/Assignment"
       },
-      "description": "Stores assignment details. Includes denormalized 'adminId' for authorization, to know which admin uploaded the assignment."
+      "description": "Stores assignment details. Includes denormalized 'adminId' for authorization."
+    },
+    "/quizzes/{quizId}": {
+      "schema": {
+        "$ref": "#/entities/Quiz"
+      },
+      "description": "Stores quiz details. Writable by admins."
+    },
+    "/practicals/{practicalId}": {
+      "schema": {
+        "$ref": "#/entities/Practical"
+      },
+      "description": "Stores lab practical details. Writable by admins."
     },
     "/users/{userId}": {
       "schema": {
