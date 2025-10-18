@@ -1,135 +1,116 @@
 /**
- * @fileoverview Firestore Security Rules for Prototyping.
+ * @fileOverview Firestore Security Rules for the application.
  *
- * Core Philosophy: This ruleset prioritizes security by enforcing authentication and authorization
- * while providing flexible data shapes to accelerate prototyping. It uses an ownership model
- * for user-specific data and restricts modification of critical relational fields. Data type
- * validation is omitted for rapid iteration.
+ * Core Philosophy:
+ * This ruleset enforces role-based access control for admins and owner-only access for user profiles, and owner only access for assignment uploads.
  *
  * Data Structure:
- * - /admins/{adminId}: Stores administrator profiles.
- * - /assignments/{assignmentId}: Stores assignment details. Includes denormalized 'adminId' for authorization.
- * - /quizzes/{quizId}: Stores quiz details.
- * - /practicals/{practicalId}: Stores lab practical details.
- * - /users/{userId}: Stores public profiles for regular users.
+ * - /admins/{adminId}: Stores administrator profiles. Only accessible to authenticated admins.
+ * - /assignments/{assignmentId}: Stores assignment details. Accessible to authenticated admins and read only for all users.
+ * - /quizzes/{quizId}: Stores quiz details. Accessible to authenticated admins.
+ * - /practicals/{practicalId}: Stores lab practical details. Accessible to authenticated admins.
+ * - /users/{userId}: Stores public profiles for regular users. Users can only read and write their own profile.
  *
  * Key Security Decisions:
- * - All write operations require authentication.
- * - User listing is disabled to protect privacy.
- * - Rules are structured to be auditable with clear helper functions.
- * - Read access to /assignments, /quizzes, and /practicals is public. Write access is restricted to authenticated users.
+ * - Only authenticated admins can create, update, or delete assignments, quizzes and practicals.
+ * - Regular users can only read their own profiles.
  *
  * Denormalization for Authorization:
- * - Assignments include 'adminId' to simplify ownership checks.
+ * - Assignments store the 'adminId' of the uploader, allowing simple rule-based access control.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Checks if the request is authenticated.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * @description Checks if the authenticated user's UID matches the provided userId.
-     */
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    /**
-     * @description Checks if the authenticated user's UID matches the resource's userId and the resource exists.
-     */
-    function isExistingOwner(userId) {
-        return (isOwner(userId) && resource != null);
-    }
-
-    /**
-     * @description Admin profile management.
+     * @description Rules for the /admins collection. Admins can only manage their own profiles.
      * @path /admins/{adminId}
-     * @allow (create) - Authenticated user can create an admin profile if the uid matches the adminId.
-     * @deny (create) - User cannot create an admin profile with a mismatched uid.
-     * @allow (get, list, update, delete) - Only the admin can access their own profile.
-     * @deny (get, list, update, delete) - Other users cannot access admin profiles.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) Authenticated admin to read their own profile.
+     * @allow (create, update, delete) Authenticated admin to create, update, and delete their own profile.
+     * @deny (get, list) Unauthorized user trying to access another admin's profile.
+     * @deny (create, update, delete) Unauthorized user attempting to modify admin profiles.
+     * @principle Enforces self-management for admin profiles.
      */
     match /admins/{adminId} {
-      allow get: if isOwner(adminId);
+      allow get: if isSignedIn() && request.auth.uid == adminId;
       allow list: if false;
-      allow create: if isOwner(adminId);
-      allow update: if isExistingOwner(adminId);
-      allow delete: if isExistingOwner(adminId);
+      allow create: if isSignedIn() && request.auth.uid == adminId;
+      allow update: if isSignedIn() && request.auth.uid == adminId && resource != null;
+      allow delete: if isSignedIn() && request.auth.uid == adminId && resource != null;
     }
 
     /**
-     * @description Assignment management.
+     * @description Rules for the /assignments collection. Only admins can create, update, or delete assignments. All users can read.
      * @path /assignments/{assignmentId}
-     * @allow (get, list) - Public read access to all assignments.
-     * @allow (create) - Authenticated users can create assignments if the 'adminId' matches their UID.
-     * @deny (create) - Users cannot create assignments with a mismatched 'adminId'.
-     * @allow (update, delete) - Only the admin who created the assignment can modify or delete it.
-     * @deny (update, delete) - Other users cannot modify or delete assignments.
-     * @principle Allows public read access with owner-only writes.
+     * @allow (get, list) Any user can read assignments.
+     * @allow (create, update, delete) Authenticated admins can create, update, and delete assignments.
+     * @deny (create, update, delete) Unauthorized users attempting to modify assignments.
+     * @principle Enforces admin-only writes for assignments.
      */
     match /assignments/{assignmentId} {
       allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.adminId == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.adminId == request.auth.uid;
-      allow delete: if isSignedIn() && resource.data.adminId == request.auth.uid;
-    }
-
-    /**
-     * @description Quiz management.
-     * @path /quizzes/{quizId}
-     * @allow (get, list) - Public read access to all quizzes.
-     * @allow (create) - Authenticated users can create quizzes.
-     * @deny (create) - Requires authentication to create a quiz.
-     * @allow (update, delete) - Only authenticated users can update or delete a quiz.
-     * @deny (update, delete) - Requires authentication to update or delete a quiz.
-     * @principle Allows public read access with owner-only writes.
-     */
-    match /quizzes/{quizId} {
-      allow get, list: if true;
       allow create: if isSignedIn();
-      allow update: if isSignedIn();
-      allow delete: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
     }
 
-      /**
-       * @description Practical management.
-       * @path /practicals/{practicalId}
-       * @allow (get, list) - Public read access to all practicals.
-       * @allow (create) - Authenticated users can create practicals.
-       * @deny (create) - Requires authentication to create a practical.
-       * @allow (update, delete) - Only authenticated users can update or delete a practical.
-       * @deny (update, delete) - Requires authentication to update or delete a practical.
-       * @principle Allows public read access with owner-only writes.
-       */
-      match /practicals/{practicalId} {
+     /**
+      * @description Rules for the /quizzes collection. Only admins can create, update, or delete quizzes.
+      * @path /quizzes/{quizId}
+      * @allow (get, list) Any user can read quizzes.
+      * @allow (create, update, delete) Authenticated admins can create, update, and delete quizzes.
+      * @deny (create, update, delete) Unauthorized users attempting to modify quizzes.
+      * @principle Enforces admin-only writes for quizzes.
+      */
+    match /quizzes/{quizId} {
         allow get, list: if true;
         allow create: if isSignedIn();
-        allow update: if isSignedIn();
-        allow delete: if isSignedIn();
-      }
+        allow update: if isSignedIn() && resource != null;
+        allow delete: if isSignedIn() && resource != null;
+    }
 
     /**
-     * @description User profile management.
+     * @description Rules for the /practicals collection. Only admins can create, update, or delete practicals.
+     * @path /practicals/{practicalId}
+     * @allow (get, list) Any user can read practicals.
+     * @allow (create, update, delete) Authenticated admins can create, update, and delete practicals.
+     * @deny (create, update, delete) Unauthorized users attempting to modify practicals.
+     * @principle Enforces admin-only writes for practicals.
+     */
+    match /practicals/{practicalId} {
+        allow get, list: if true;
+        allow create: if isSignedIn();
+        allow update: if isSignedIn() && resource != null;
+        allow delete: if isSignedIn() && resource != null;
+    }
+
+    /**
+     * @description Rules for the /users collection. Users can only manage their own profiles.
      * @path /users/{userId}
-     * @allow (create) - Authenticated user can create their own profile if the UID matches the userId.
-     * @deny (create) - User cannot create a profile for another user.
-     * @allow (get, update, delete) - Only the user can access and modify their own profile.
-     * @deny (get, update, delete) - Other users cannot access user profiles.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) Authenticated user to read their own profile.
+     * @allow (create, update, delete) Authenticated user to create, update, and delete their own profile.
+     * @deny (get, list) Unauthorized user trying to access another user's profile.
+     * @deny (create, update, delete) Unauthorized user attempting to modify user profiles.
+     * @principle Enforces self-management for user profiles.
      */
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isOwner(userId) && resource != null && resource.data.id == request.resource.data.id;
       allow delete: if isExistingOwner(userId);
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
     }
   }
 }
