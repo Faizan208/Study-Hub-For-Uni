@@ -7,6 +7,8 @@ import Browse from "@/components/browse";
 import SemesterDialog from "@/components/semester-dialog";
 import { useUser, useFirebase, setDocumentNonBlocking } from "@/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import Stats from "@/components/stats";
+import About from "@/components/about";
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -72,6 +74,8 @@ export default function Home() {
         {user && <SemesterDialog open={isDialogOpen} onSave={handleSemesterSave} />}
         <Hero />
         {user && semester && <Browse semester={semester} />}
+        <Stats />
+        <About />
       </main>
     </div>
   );
