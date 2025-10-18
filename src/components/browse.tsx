@@ -44,7 +44,7 @@ export default function Browse({ semester }: { semester: string }) {
         {/* Latest Uploads */}
         <div className="mb-16">
           <h2 className="mb-10 text-center text-3xl font-bold md:text-4xl">
-            Latest Quizzes & Assignments for Semester {semester}
+            Latest Uploads for Semester {semester}
           </h2>
           {latestUploads.length > 0 ? (
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
