@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Filter, Search } from "lucide-react";
 import Image from "next/image";
-import { getQuizzes, getAssignments, getPracticals, practicalFilters } from "@/lib/placeholder-data";
+import { getAssignments, getPracticals, practicalFilters } from "@/lib/placeholder-data";
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
@@ -16,7 +16,6 @@ export default function Browse({ semester }: { semester: string }) {
   const { user } = useUser();
   const router = useRouter();
 
-  const quizzes = getQuizzes(semester);
   const assignments = getAssignments(semester);
   const allPracticals = getPracticals(semester);
 
@@ -27,7 +26,7 @@ export default function Browse({ semester }: { semester: string }) {
       p.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-  const latestUploads = [...quizzes, ...assignments];
+  const latestUploads = [...assignments];
 
   const handleBuyNow = () => {
     if (!user) {
@@ -41,10 +40,10 @@ export default function Browse({ semester }: { semester: string }) {
   return (
     <section className="py-20 md:py-28">
       <div className="container mx-auto px-4 md:px-6">
-        {/* Latest Uploads */}
+        {/* Assignments */}
         <div className="mb-16">
           <h2 className="mb-10 text-center text-3xl font-bold md:text-4xl">
-            Latest Uploads for Semester {semester}
+            Assignments for Semester {semester}
           </h2>
           {latestUploads.length > 0 ? (
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -75,7 +74,7 @@ export default function Browse({ semester }: { semester: string }) {
               ))}
             </div>
           ) : (
-             <p className="text-center text-muted-foreground">No quizzes or assignments found for this semester.</p>
+             <p className="text-center text-muted-foreground">No assignments found for this semester.</p>
           )}
         </div>
 

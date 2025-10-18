@@ -49,7 +49,7 @@ const allAssignments = [
     type: "assignment",
     semester: "4",
   },
-    {
+  {
     id: "assignment-3",
     title: "Intro to Programming Assignment",
     description: "Basic C++ programming concepts.",
@@ -57,6 +57,15 @@ const allAssignments = [
     image: placeholderImages.assignment1.src,
     type: "assignment",
     semester: "1",
+  },
+  {
+    id: "assignment-4",
+    title: "DSA Assignment 1",
+    description: "Tasks related to arrays and linked lists.",
+    price: 150,
+    image: placeholderImages.assignment2.src,
+    type: "assignment",
+    semester: "3",
   },
 ];
 
