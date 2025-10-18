@@ -20,7 +20,7 @@ export default function Footer() {
                         <span className="text-lg font-bold text-primary">LGU Study Hub</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                        © {new Date().getFullYear()} LGU Study Hub. All rights reserved.
+                        Made with ❤️ by Faizan
                     </p>
                     <div className="flex items-center gap-4">
                         <SocialLink href="#" icon={Twitter} label="Twitter" />
