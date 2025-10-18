@@ -9,6 +9,25 @@ import { getAssignments, getPracticals, practicalFilters } from "@/lib/placehold
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
+import { useInView } from "react-intersection-observer";
+
+const AnimatedCard = ({ children, index }: { children: React.ReactNode, index: number }) => {
+  const { ref, inView } = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+
+  return (
+    <div
+      ref={ref}
+      className={`transition-all duration-500 ease-out ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+      style={{ transitionDelay: `${index * 100}ms` }}
+    >
+      {children}
+    </div>
+  );
+};
+
 
 export default function Browse({ semester }: { semester: string }) {
   const [activeFilter, setActiveFilter] = React.useState("All");
@@ -47,30 +66,32 @@ export default function Browse({ semester }: { semester: string }) {
           </h2>
           {latestUploads.length > 0 ? (
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {latestUploads.map((item) => (
-                <Card key={item.id} className="overflow-hidden transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl flex flex-col">
-                  <CardContent className="p-0 flex flex-col flex-grow">
-                    <div className="relative w-full h-48">
-                      <Image
-                        data-ai-hint={`${item.type} resource`}
-                        src={item.image}
-                        alt={item.title}
-                        layout="fill"
-                        objectFit="cover"
-                      />
-                    </div>
-                    <div className="p-6 flex flex-col flex-grow">
-                      <h3 className="mb-2 text-xl font-bold">{item.title}</h3>
-                      <p className="mb-4 text-sm text-muted-foreground flex-grow">{item.description}</p>
-                      <div className="flex items-center justify-between mt-auto">
-                        <p className="text-lg font-semibold text-primary">
-                          {item.price} Rs
-                        </p>
-                        <Button onClick={handleBuyNow}>Buy Now</Button>
+              {latestUploads.map((item, index) => (
+                <AnimatedCard key={item.id} index={index}>
+                  <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-xl flex flex-col h-full">
+                    <CardContent className="p-0 flex flex-col flex-grow">
+                      <div className="relative w-full h-48">
+                        <Image
+                          data-ai-hint={`${item.type} resource`}
+                          src={item.image}
+                          alt={item.title}
+                          layout="fill"
+                          objectFit="cover"
+                        />
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                      <div className="p-6 flex flex-col flex-grow">
+                        <h3 className="mb-2 text-xl font-bold">{item.title}</h3>
+                        <p className="mb-4 text-sm text-muted-foreground flex-grow">{item.description}</p>
+                        <div className="flex items-center justify-between mt-auto">
+                          <p className="text-lg font-semibold text-primary">
+                            {item.price} Rs
+                          </p>
+                          <Button onClick={handleBuyNow}>Buy Now</Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </AnimatedCard>
               ))}
             </div>
           ) : (
@@ -109,30 +130,32 @@ export default function Browse({ semester }: { semester: string }) {
           </div>
           {filteredPracticals.length > 0 ? (
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filteredPracticals.map((item) => (
-                <Card key={item.id} className="overflow-hidden transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl flex flex-col">
-                  <CardContent className="p-0 flex flex-col flex-grow">
-                    <div className="relative w-full h-48">
-                      <Image
-                        data-ai-hint={`${item.category} practical`}
-                        src={item.image}
-                        alt={item.title}
-                        layout="fill"
-                        objectFit="cover"
-                      />
-                    </div>
-                    <div className="p-6 flex flex-col flex-grow">
-                      <h3 className="mb-2 text-xl font-bold">{item.title}</h3>
-                      <p className="mb-4 text-sm text-muted-foreground flex-grow">{item.description}</p>
-                      <div className="flex items-center justify-between mt-auto">
-                        <p className="text-lg font-semibold text-primary">
-                          {item.price} Rs
-                        </p>
-                        <Button onClick={handleBuyNow}>Buy Now</Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              {filteredPracticals.map((item, index) => (
+                 <AnimatedCard key={item.id} index={index}>
+                    <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-xl flex flex-col h-full">
+                      <CardContent className="p-0 flex flex-col flex-grow">
+                        <div className="relative w-full h-48">
+                          <Image
+                            data-ai-hint={`${item.category} practical`}
+                            src={item.image}
+                            alt={item.title}
+                            layout="fill"
+                            objectFit="cover"
+                          />
+                        </div>
+                        <div className="p-6 flex flex-col flex-grow">
+                          <h3 className="mb-2 text-xl font-bold">{item.title}</h3>
+                          <p className="mb-4 text-sm text-muted-foreground flex-grow">{item.description}</p>
+                          <div className="flex items-center justify-between mt-auto">
+                            <p className="text-lg font-semibold text-primary">
+                              {item.price} Rs
+                            </p>
+                            <Button onClick={handleBuyNow}>Buy Now</Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                 </AnimatedCard>
               ))}
             </div>
           ) : (
