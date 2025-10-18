@@ -4,7 +4,6 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, useFirebase } from "@/firebase";
 import {
-  addDoc,
   collection,
   serverTimestamp,
 } from "firebase/firestore";

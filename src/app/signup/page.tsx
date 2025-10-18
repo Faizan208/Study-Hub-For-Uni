@@ -30,6 +30,14 @@ export default function SignUpPage() {
   }, [user, isUserLoading, router]);
 
   const handleSignUp = async () => {
+    if (!auth) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Authentication service is not available. Please try again later.",
+        });
+        return;
+    }
     if (!email || !password) {
       toast({
         variant: "destructive",
