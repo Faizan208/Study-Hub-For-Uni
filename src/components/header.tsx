@@ -10,7 +10,6 @@ import * as React from "react";
 const navLinks = [
   { href: "#", label: "Home" },
   { href: "#", label: "Browse" },
-  { href: "#", label: "Upload" },
   { href: "#", label: "About" },
   { href: "#", label: "Contact" },
 ];
