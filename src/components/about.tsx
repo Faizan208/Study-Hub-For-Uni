@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function About() {
   return (
-    <section className="py-20 md:py-28 bg-muted/50 dark:bg-muted/10">
+    <section id="about" className="py-20 md:py-28 bg-muted/50 dark:bg-muted/10">
       <div className="container mx-auto px-4 md:px-6">
         <div className="mx-auto max-w-4xl">
           <Card className="overflow-hidden shadow-lg">

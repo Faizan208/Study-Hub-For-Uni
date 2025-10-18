@@ -11,10 +11,9 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/firebase";
 
 const navLinks = [
-  { href: "#", label: "Home" },
-  { href: "#", label: "Browse" },
-  { href: "#", label: "About" },
-  { href: "#", label: "Contact" },
+  { href: "#home", label: "Home" },
+  { href: "#browse", label: "Browse" },
+  { href: "#about", label: "About" },
 ];
 
 export default function Header() {

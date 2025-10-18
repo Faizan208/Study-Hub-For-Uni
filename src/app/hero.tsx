@@ -26,7 +26,7 @@ const FloatingBadge = ({ text, icon: Icon, className, animationClass } : {text: 
 
 export default function Hero() {
   return (
-    <section className="relative w-full overflow-hidden py-24 md:py-32 lg:py-40">
+    <section id="home" className="relative w-full overflow-hidden py-24 md:py-32 lg:py-40">
       <div className="container mx-auto px-4 md:px-6">
         <div className="relative z-10 mx-auto max-w-3xl text-center">
           <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
@@ -43,7 +43,7 @@ export default function Hero() {
               size="lg"
               className="w-full sm:w-auto transition-transform duration-300 hover:scale-105"
             >
-              <Link href="#">
+              <Link href="#browse">
                 Explore Resources <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
@@ -53,7 +53,7 @@ export default function Hero() {
               variant="outline"
               className="w-full border-2 sm:w-auto transition-transform duration-300 hover:scale-105"
             >
-              <Link href="#">Learn More</Link>
+              <Link href="#about">Learn More</Link>
             </Button>
           </div>
         </div>

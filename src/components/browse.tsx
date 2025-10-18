@@ -105,7 +105,7 @@ export default function Browse({ semester }: { semester: string }) {
     if (!firestore) return null;
     return query(collection(firestore, "assignments"), where("semester", "==", semester));
   }, [firestore, semester]);
-  
+
   const practicalsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, "practicals"), where("semester", "==", semester));
@@ -159,7 +159,7 @@ export default function Browse({ semester }: { semester: string }) {
   )
 
   return (
-    <section className="py-20 md:py-28">
+    <section id="browse" className="py-20 md:py-28">
       <div className="container mx-auto px-4 md:px-6">
         
         {renderResourceSection("Assignments", assignments, isLoadingAssignments)}
