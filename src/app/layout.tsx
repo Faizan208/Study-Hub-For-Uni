@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
+import Footer from "@/components/footer";
 
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat" });
 
@@ -37,7 +38,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`${montserrat.variable} font-body antialiased uppercase`}>
+      <body className={`${montserrat.variable} font-body antialiased uppercase flex flex-col min-h-screen`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -47,6 +48,7 @@ export default function RootLayout({
           <FirebaseClientProvider>
             {children}
             <Toaster />
+            <Footer />
           </FirebaseClientProvider>
         </ThemeProvider>
       </body>

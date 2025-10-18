@@ -1,5 +1,5 @@
 import { ArrowRight, Book, BookOpenCheck, GraduationCap, Lightbulb, PenSquare } from "lucide-react";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 const FloatingIcon = ({ icon: Icon, className, animationClass } : {icon: React.ElementType, className: string, animationClass: string}) => (

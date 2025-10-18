@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Header from "@/components/header";
-import Hero from "@/components/hero";
+import Hero from "@/app/hero";
 import Browse from "@/components/browse";
 import SemesterDialog from "@/components/semester-dialog";
 import { useUser, useFirebase, setDocumentNonBlocking } from "@/firebase";
@@ -68,7 +68,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <>
       <Header />
       <main className="flex-1">
         {user && <SemesterDialog open={isDialogOpen} onSave={handleSemesterSave} />}
@@ -77,6 +77,6 @@ export default function Home() {
         <Stats />
         <About />
       </main>
-    </div>
+    </>
   );
 }
