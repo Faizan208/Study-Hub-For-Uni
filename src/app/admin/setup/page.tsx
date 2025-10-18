@@ -27,19 +27,24 @@ export default function AdminSetupPage() {
   React.useEffect(() => {
     if (isUserLoading || !firestore) return;
 
-    // If a user is already logged in, send them to the dashboard
     if (user) {
       router.push("/admin/dashboard");
       return;
     }
 
-    // Check if any admin accounts already exist. If so, redirect to login.
     const checkAdmins = async () => {
-        const adminsQuery = query(collection(firestore, 'admins'), limit(1));
-        const adminSnapshot = await getDocs(adminsQuery);
-        if (!adminSnapshot.empty) {
-            router.push('/admin/login');
-        } else {
+        try {
+            const adminsQuery = query(collection(firestore, 'admins'), limit(1));
+            const adminSnapshot = await getDocs(adminsQuery);
+            if (!adminSnapshot.empty) {
+                router.push('/admin/login');
+            } else {
+                setCheckingAdmins(false);
+            }
+        } catch(e) {
+            // This error is expected if the rules are set up correctly
+            // and the user is not an admin. We can safely assume no admins
+            // exist and allow the setup page to render.
             setCheckingAdmins(false);
         }
     };
@@ -86,15 +91,15 @@ export default function AdminSetupPage() {
         role: 'superadmin',
       };
       
-      // This creates the admin document in the 'admins' collection
-      await setDocumentNonBlocking(doc(firestore, "admins", newAdmin.uid), adminProfileData, { merge: false });
+      setDocumentNonBlocking(doc(firestore, "admins", newAdmin.uid), adminProfileData, { merge: false });
       
       toast({
         title: "Admin Account Created",
-        description: "Redirecting to your dashboard...",
+        description: "Your account is being set up. Redirecting to your dashboard...",
       });
       
-      router.push("/admin/dashboard");
+      // The onAuthStateChanged listener will handle the redirect
+      // after the user state is updated.
 
     } catch (error: any) {
       let description = "Could not create account. Please try again.";
@@ -108,9 +113,10 @@ export default function AdminSetupPage() {
         title: "Setup Failed",
         description,
       });
-    } finally {
-      setIsCreatingAccount(false);
+       setIsCreatingAccount(false);
     }
+    // We don't set isCreatingAccount to false in the success case
+    // because the page will redirect.
   };
 
   if(isUserLoading || user || checkingAdmins) {

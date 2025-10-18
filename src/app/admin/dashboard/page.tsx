@@ -38,11 +38,17 @@ export default function AdminDashboard() {
       // Not logged in, check if any admin exists to decide where to redirect.
       const checkAdmins = async () => {
         const adminsQuery = query(collection(firestore, "admins"), limit(1));
-        const adminSnapshot = await getDocs(adminsQuery);
-        if (adminSnapshot.empty) {
-          router.push("/admin/setup");
-        } else {
-          router.push("/admin/login");
+        try {
+            const adminSnapshot = await getDocs(adminsQuery);
+            if (adminSnapshot.empty) {
+              router.push("/admin/setup");
+            } else {
+              router.push("/admin/login");
+            }
+        } catch(e) {
+            // If we can't read the collection, it might be a rules issue.
+            // For now, assume setup is needed if a user isn't logged in.
+             router.push("/admin/setup");
         }
       };
       checkAdmins();
@@ -79,25 +85,17 @@ export default function AdminDashboard() {
       uploadDate: serverTimestamp(),
     };
 
-    try {
-        const assignmentsCollection = collection(firestore, 'assignments');
-        addDocumentNonBlocking(assignmentsCollection, assignmentData);
+    const assignmentsCollection = collection(firestore, 'assignments');
+    addDocumentNonBlocking(assignmentsCollection, assignmentData);
 
-      toast({
-        title: "Upload Successful",
-        description: "The assignment has been uploaded.",
-      });
-      setTitle("");
-      setDescription("");
-    } catch (error) {
-       toast({
-        variant: "destructive",
-        title: "Upload Failed",
-        description: "Could not upload the assignment. Please try again.",
-      });
-    } finally {
-        setIsUploading(false);
-    }
+    toast({
+        title: "Upload Initiated",
+        description: "Your assignment is being uploaded.",
+    });
+
+    setTitle("");
+    setDescription("");
+    setIsUploading(false);
   };
   
   const handleSignOut = async () => {

@@ -22,6 +22,7 @@ export default function AdminLogin() {
   const [password, setPassword] = React.useState("");
   const [isSigningIn, setIsSigningIn] = React.useState(false);
   const [checkingAdmins, setCheckingAdmins] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (isUserLoading || !firestore) return;
@@ -33,10 +34,16 @@ export default function AdminLogin() {
 
     const checkAdmins = async () => {
       const adminsQuery = query(collection(firestore, "admins"), limit(1));
-      const adminSnapshot = await getDocs(adminsQuery);
-      if (adminSnapshot.empty) {
-        router.push("/admin/setup");
-      } else {
+      try {
+        const adminSnapshot = await getDocs(adminsQuery);
+        if (adminSnapshot.empty) {
+          router.push("/admin/setup");
+        } else {
+          setCheckingAdmins(false);
+        }
+      } catch (e) {
+        // This might happen if rules deny list access to non-admins.
+        // We'll proceed assuming an admin exists.
         setCheckingAdmins(false);
       }
     };
@@ -46,27 +53,20 @@ export default function AdminLogin() {
 
   const handleSignIn = async () => {
     if (!email || !password) {
-      toast({
-        variant: "destructive",
-        title: "Missing Fields",
-        description: "Please enter both email and password.",
-      });
+       setError("Please enter both email and password.");
       return;
     }
     setIsSigningIn(true);
+    setError(null);
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/admin/dashboard");
     } catch (error: any) {
-      let description = "An unknown error occurred. Please try again.";
-      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-          description = "Invalid email or password. Please try again.";
-      }
-      toast({
-        variant: "destructive",
-        title: "Sign-in Failed",
-        description: description,
-      });
+        if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+             setError("Incorrect email or password. Please check your credentials and try again.");
+        } else {
+             setError("An unknown error occurred during sign-in. Please try again later.");
+        }
     } finally {
       setIsSigningIn(false);
     }
@@ -105,6 +105,9 @@ export default function AdminLogin() {
                 required
               />
             </div>
+             {error && (
+              <p className="text-sm font-medium text-destructive">{error}</p>
+            )}
             <Button onClick={handleSignIn} disabled={isSigningIn} className="w-full">
               {isSigningIn ? "Signing In..." : "Sign In"}
             </Button>
