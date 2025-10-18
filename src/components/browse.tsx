@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 
 export default function Browse({ semester }: { semester: string }) {
   const [activeFilter, setActiveFilter] = React.useState("All");
+  const [searchQuery, setSearchQuery] = React.useState("");
   const { user } = useUser();
   const router = useRouter();
 
@@ -19,10 +20,12 @@ export default function Browse({ semester }: { semester: string }) {
   const assignments = getAssignments(semester);
   const allPracticals = getPracticals(semester);
 
-  const filteredPracticals =
-    activeFilter === "All"
-      ? allPracticals
-      : allPracticals.filter((p) => p.category === activeFilter);
+  const filteredPracticals = allPracticals
+    .filter((p) => activeFilter === "All" || p.category === activeFilter)
+    .filter((p) => 
+      p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   const latestUploads = [...quizzes, ...assignments];
 
@@ -83,7 +86,12 @@ export default function Browse({ semester }: { semester: string }) {
           <div className="mb-8 flex flex-col items-center justify-center gap-4 md:flex-row">
               <div className="relative w-full max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input placeholder="Search practicals..." className="w-full rounded-full bg-background/80 pl-10" />
+                <Input 
+                  placeholder="Search practicals..." 
+                  className="w-full rounded-full bg-background/80 pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
             <div className="flex items-center gap-2 overflow-x-auto pb-2">
               <Filter className="h-5 w-5 text-muted-foreground" />
@@ -127,7 +135,7 @@ export default function Browse({ semester }: { semester: string }) {
               ))}
             </div>
           ) : (
-            <p className="text-center text-muted-foreground">No practicals found for this semester.</p>
+            <p className="text-center text-muted-foreground">No practicals found for this filter.</p>
           )}
         </div>
       </div>
