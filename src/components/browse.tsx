@@ -49,20 +49,21 @@ export default function Browse({ semester }: { semester: string }) {
           {latestUploads.length > 0 ? (
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {latestUploads.map((item) => (
-                <Card key={item.id} className="overflow-hidden transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl">
-                  <CardContent className="p-0">
-                    <Image
-                      data-ai-hint={`${item.type} resource`}
-                      src={item.image}
-                      alt={item.title}
-                      width={600}
-                      height={400}
-                      className="h-48 w-full object-cover"
-                    />
-                    <div className="p-6">
+                <Card key={item.id} className="overflow-hidden transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl flex flex-col">
+                  <CardContent className="p-0 flex flex-col flex-grow">
+                    <div className="relative w-full h-48">
+                      <Image
+                        data-ai-hint={`${item.type} resource`}
+                        src={item.image}
+                        alt={item.title}
+                        layout="fill"
+                        objectFit="cover"
+                      />
+                    </div>
+                    <div className="p-6 flex flex-col flex-grow">
                       <h3 className="mb-2 text-xl font-bold">{item.title}</h3>
-                      <p className="mb-4 text-sm text-muted-foreground">{item.description}</p>
-                      <div className="flex items-center justify-between">
+                      <p className="mb-4 text-sm text-muted-foreground flex-grow">{item.description}</p>
+                      <div className="flex items-center justify-between mt-auto">
                         <p className="text-lg font-semibold text-primary">
                           {item.price} Rs
                         </p>
@@ -110,20 +111,21 @@ export default function Browse({ semester }: { semester: string }) {
           {filteredPracticals.length > 0 ? (
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredPracticals.map((item) => (
-                <Card key={item.id} className="overflow-hidden transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl">
-                  <CardContent className="p-0">
-                    <Image
-                      data-ai-hint={`${item.category} practical`}
-                      src={item.image}
-                      alt={item.title}
-                      width={600}
-                      height={400}
-                      className="h-48 w-full object-cover"
-                    />
-                    <div className="p-6">
+                <Card key={item.id} className="overflow-hidden transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl flex flex-col">
+                  <CardContent className="p-0 flex flex-col flex-grow">
+                    <div className="relative w-full h-48">
+                      <Image
+                        data-ai-hint={`${item.category} practical`}
+                        src={item.image}
+                        alt={item.title}
+                        layout="fill"
+                        objectFit="cover"
+                      />
+                    </div>
+                    <div className="p-6 flex flex-col flex-grow">
                       <h3 className="mb-2 text-xl font-bold">{item.title}</h3>
-                      <p className="mb-4 text-sm text-muted-foreground">{item.description}</p>
-                      <div className="flex items-center justify-between">
+                      <p className="mb-4 text-sm text-muted-foreground flex-grow">{item.description}</p>
+                      <div className="flex items-center justify-between mt-auto">
                         <p className="text-lg font-semibold text-primary">
                           {item.price} Rs
                         </p>

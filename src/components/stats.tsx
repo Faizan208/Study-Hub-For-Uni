@@ -1,11 +1,8 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-
-const stats = [
-  { value: "500+", label: "Resources" },
-  { value: "1000+", label: "Students" },
-];
+import { useFirebase } from "@/firebase";
+import { collection, getDocs } from "firebase/firestore";
 
 const StatItem = ({
   value,
@@ -34,6 +31,9 @@ const StatItem = ({
 export default function Stats() {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
+  const { firestore } = useFirebase();
+  const [studentCount, setStudentCount] = useState(0);
+  const [resourceCount, setResourceCount] = useState(0);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -59,6 +59,28 @@ export default function Stats() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (firestore) {
+        const usersCollectionRef = collection(firestore, "users");
+        try {
+          const querySnapshot = await getDocs(usersCollectionRef);
+          setStudentCount(querySnapshot.size);
+        } catch (error) {
+          console.error("Error fetching student count:", error);
+          // Keep count at 0 if there's an error
+        }
+      }
+    };
+
+    fetchStats();
+  }, [firestore]);
+
+  const stats = [
+    { value: resourceCount.toString(), label: "Resources" },
+    { value: studentCount.toString(), label: "Students" },
+  ];
 
   return (
     <section ref={ref} className="py-16 sm:py-24">
