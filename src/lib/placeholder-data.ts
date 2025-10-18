@@ -2,7 +2,7 @@ import placeholderImages from '@/app/lib/placeholder-images.json';
 
 export const quizzes = [
   {
-    id: 1,
+    id: "quiz-1",
     title: "DSA Quiz 1",
     description: "Fundamentals of Data Structures and Algorithms.",
     price: 150,
@@ -10,7 +10,7 @@ export const quizzes = [
     type: "quiz",
   },
   {
-    id: 2,
+    id: "quiz-2",
     title: "COAL Quiz 2",
     description: "Advanced topics in Computer Organization.",
     price: 150,
@@ -21,7 +21,7 @@ export const quizzes = [
 
 export const assignments = [
   {
-    id: 1,
+    id: "assignment-1",
     title: "Database Systems Assignment",
     description: "Design and implement a relational database.",
     price: 150,
@@ -29,7 +29,7 @@ export const assignments = [
     type: "assignment",
   },
   {
-    id: 2,
+    id: "assignment-2",
     title: "Operating Systems Assignment",
     description: "Implement a basic process scheduler.",
     price: 150,
@@ -42,7 +42,7 @@ export const practicalFilters = ["All", "DSA Lab", "COAL Lab", "OOP Lab"];
 
 export const practicals = [
   {
-    id: 1,
+    id: "practical-1",
     title: "DSA Lab Practical 1",
     description: "Implementation of Linked List.",
     price: 200,
@@ -50,7 +50,7 @@ export const practicals = [
     image: placeholderImages.practical1.src,
   },
   {
-    id: 2,
+    id: "practical-2",
     title: "COAL Lab Practical 1",
     description: "Building a simple ALU.",
     price: 200,
@@ -58,7 +58,7 @@ export const practicals = [
     image: placeholderImages.practical2.src,
   },
   {
-    id: 3,
+    id: "practical-3",
     title: "OOP Lab Practical 1",
     description: "Object-oriented design principles.",
     price: 200,
@@ -66,7 +66,7 @@ export const practicals = [
     image: placeholderImages.practical3.src,
   },
   {
-    id: 4,
+    id: "practical-4",
     title: "DSA Lab Practical 2",
     description: "Binary Search Tree implementation.",
     price: 200,
