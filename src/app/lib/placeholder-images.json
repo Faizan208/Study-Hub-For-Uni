@@ -1,0 +1,26 @@
+{
+  "quiz1": {
+    "src": "https://picsum.photos/seed/quiz1/600/400"
+  },
+  "quiz2": {
+    "src": "https://picsum.photos/seed/quiz2/600/400"
+  },
+  "assignment1": {
+    "src": "https://picsum.photos/seed/assignment1/600/400"
+  },
+  "assignment2": {
+    "src": "https://picsum.photos/seed/assignment2/600/400"
+  },
+  "practical1": {
+    "src": "https://picsum.photos/seed/practical1/600/400"
+  },
+  "practical2": {
+    "src": "https://picsum.photos/seed/practical2/600/400"
+  },
+  "practical3": {
+    "src": "https://picsum.photos/seed/practical3/600/400"
+  },
+  "practical4": {
+    "src": "https://picsum.photos/seed/practical4/600/400"
+  }
+}
