@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpenCheck, Menu, User } from "lucide-react";
+import { BookOpenCheck, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "./theme-toggle";
@@ -32,11 +32,10 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleAuthAction = () => {
+  const handleSignOut = () => {
     if (user) {
       auth.signOut();
-    } else {
-      router.push('/admin/login');
+      router.push('/');
     }
   };
 
@@ -69,20 +68,7 @@ export default function Header() {
         </nav>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Button
-            onClick={handleAuthAction}
-            className="hidden rounded-full transition-transform duration-300 hover:scale-105 hover:shadow-lg md:inline-flex"
-          >
-            {isUserLoading ? (
-              "..."
-            ) : user ? (
-              <>
-                <User className="mr-2 h-4 w-4" /> Sign Out
-              </>
-            ) : (
-              "Sign In"
-            )}
-          </Button>
+          
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
@@ -115,9 +101,6 @@ export default function Header() {
                     </Link>
                   ))}
                 </nav>
-                 <Button onClick={handleAuthAction} className="rounded-full">
-                    {isUserLoading ? "..." : user ? "Sign Out" : "Sign In"}
-                  </Button>
               </div>
             </SheetContent>
           </Sheet>
