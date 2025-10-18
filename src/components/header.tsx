@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpenCheck, Menu } from "lucide-react";
+import { BookOpenCheck, Menu, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "./theme-toggle";
 import * as React from "react";
+import { useAuth } from "@/firebase";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/firebase";
 
 const navLinks = [
   { href: "#", label: "Home" },
@@ -16,6 +19,10 @@ const navLinks = [
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = React.useState(false);
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +31,15 @@ export default function Header() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleAuthAction = () => {
+    if (user) {
+      auth.signOut();
+    } else {
+      router.push('/admin/login');
+    }
+  };
+
 
   return (
     <header
@@ -53,8 +69,19 @@ export default function Header() {
         </nav>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Button className="hidden rounded-full transition-transform duration-300 hover:scale-105 hover:shadow-lg md:inline-flex">
-            Sign In
+          <Button
+            onClick={handleAuthAction}
+            className="hidden rounded-full transition-transform duration-300 hover:scale-105 hover:shadow-lg md:inline-flex"
+          >
+            {isUserLoading ? (
+              "..."
+            ) : user ? (
+              <>
+                <User className="mr-2 h-4 w-4" /> Sign Out
+              </>
+            ) : (
+              "Sign In"
+            )}
           </Button>
           <Sheet>
             <SheetTrigger asChild>
@@ -88,8 +115,8 @@ export default function Header() {
                     </Link>
                   ))}
                 </nav>
-                 <Button className="rounded-full">
-                    Sign In
+                 <Button onClick={handleAuthAction} className="rounded-full">
+                    {isUserLoading ? "..." : user ? "Sign Out" : "Sign In"}
                   </Button>
               </div>
             </SheetContent>
