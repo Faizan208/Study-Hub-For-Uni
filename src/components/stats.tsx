@@ -5,7 +5,6 @@ import { useRef, useEffect, useState } from "react";
 const stats = [
   { value: "500+", label: "Resources" },
   { value: "1000+", label: "Students" },
-  { value: "4.9", label: "Rating" },
 ];
 
 const StatItem = ({
@@ -64,7 +63,7 @@ export default function Stats() {
   return (
     <section ref={ref} className="py-16 sm:py-24">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="grid grid-cols-1 gap-12 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-12 sm:grid-cols-2">
           {stats.map((stat, index) => (
             <StatItem key={stat.label} {...stat} inView={inView} index={index} />
           ))}
