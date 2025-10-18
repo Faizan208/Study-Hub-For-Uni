@@ -92,7 +92,7 @@ export default function QuizzesPage() {
         setFormState(prev => ({ ...prev, [name]: value }));
     }
 
-    const handleSubmit = async () => {
+    const handleSubmit = () => {
         if (!firestore || !user) return;
         if (!formState.title || !formState.description || !formState.semester || !formState.price || !formState.image) {
             toast({ variant: "destructive", title: "Missing fields" });
